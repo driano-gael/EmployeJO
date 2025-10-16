@@ -1,5 +1,10 @@
+import { UserProvider } from '../src/context/UserContext';
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
-  return <Stack />;
+  return (
+    <UserProvider>
+      <Stack />
+    </UserProvider>
+  );
 }
