@@ -23,20 +23,25 @@ export default function ScanQRCodeScreen(){
   const handleBarcodeScanned = async ({ type, data }: { type: string; data: string }) => {
     if (!scanning) return; // Éviter les scans multiples
 
+    console.log('📱 QR Code scanné:', data);
+    console.log('🏷️ Type de code:', type);
+
     setScanning(false);
     setLastScanResult(null);
 
     try {
       const result = await verifyTicket(data);
 
-      if (result.valid) {
+      if (result.valid && result.ticket) {
         setLastScanResult('✅ Billet valide');
-        Alert.alert('✅ Succès', 'Le billet est valide !', [
-          { text: 'Scanner un autre', onPress: () => setScanning(true) }
-        ]);
+        Alert.alert(
+          '✅ Billet Valide',
+          `Client: ${result.ticket.client.prenom} ${result.ticket.client.nom}\nÉvénement: ${result.ticket.evenement.description}\nLieu: ${result.ticket.evenement.lieu.nom}\nOffre: ${result.ticket.offre.libelle} (${result.ticket.offre.montant}€)\nDate d'achat: ${new Date(result.ticket.date_achat).toLocaleDateString('fr-FR')}`,
+          [{ text: 'Scanner un autre', onPress: () => setScanning(true) }]
+        );
       } else {
         setLastScanResult('❌ Billet invalide');
-        Alert.alert('❌ Invalide', 'Le billet n\'est pas valide.', [
+        Alert.alert('❌ Billet Invalide', result.message, [
           { text: 'Scanner un autre', onPress: () => setScanning(true) }
         ]);
       }
@@ -45,8 +50,8 @@ export default function ScanQRCodeScreen(){
       setLastScanResult('⚠️ Erreur de vérification');
 
       let errorMessage = 'Impossible de vérifier le billet.';
-      if (error.response?.status === 404) {
-        errorMessage = 'Billet non trouvé.';
+      if (error.response?.status === 401) {
+        errorMessage = 'Session expirée. Veuillez vous reconnecter.';
       } else if (!error.response) {
         errorMessage = 'Problème de connexion au serveur.';
       }

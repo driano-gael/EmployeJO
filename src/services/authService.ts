@@ -1,5 +1,5 @@
 // Service d'authentification adapté à l'API Django DRF
-import api, { setAuthFunctions } from './api';
+import { setAuthFunctions, authApi } from './api';
 import * as SecureStore from 'expo-secure-store';
 
 export interface LoginResponse {
@@ -22,7 +22,7 @@ export const refreshToken = async (): Promise<string | null> => {
     const refreshTokenValue = await getRefreshToken();
     if (!refreshTokenValue) return null;
 
-    const response = await api.post('auth/refresh/', { refresh: refreshTokenValue });
+    const response = await authApi.post('auth/refresh/', { refresh: refreshTokenValue });
     const { access } = response.data;
 
     await SecureStore.setItemAsync('accessToken', access);
@@ -43,7 +43,7 @@ export const logout = async (): Promise<void> => {
 setAuthFunctions(getToken, refreshToken, logout);
 
 export const login = async (email: string, password: string): Promise<LoginResponse> => {
-  const response = await api.post('auth/login/', { email, password });
+  const response = await authApi.post('auth/login/', { email, password });
   const { access, refresh, role, email: userEmail } = response.data;
 
   // Stocker les tokens de manière sécurisée
